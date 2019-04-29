@@ -1,14 +1,73 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-
 import datetime
 
-def get_db():
+def get_available_books(db):
+    available_books = []
+    for record in get_inventory(db):
+        book_id = record['book_id']
+        qty = record['qty']
+        if qty <= 0:
+            continue
+        book = get_book(db, book_id)
+        book['qty'] = qty
+        available_books.append(book)
+    return available_books
+
+def get_books(db):
+    return db.books.find({})
+
+def get_book(db, book_id):
+    return db.books.find_one({'_id': book_id})
+
+def get_inventory(db):
+    return db.inventory.find({})
+
+def get_customers(db):
+    return db.customers.find({})
+
+def get_customer(db, customer_id):
+    return db.customers.find_one({'_id': customer_id})
+
+def get_orders(db):
+    return db.orders.find({})
+
+def get_order(db, order_id):
+    return db.orders.find_one({'_id': order_id})
+
+def place_order(db, customer_id, book_id, qty):
+    db.orders.insert({
+            "customer_id": customer_id,
+            "book_id": book_id,
+            "qty": qty,
+            "status": "Created"
+        })
+
+    print("Order placed successfully.")
+
+def fullfil_order(db, order_id):
+    current_order = db.orders.find_one({"_id": order_id})
+    current_inventory = db.inventory.find_one({"book_id": current_order['book_id']})
+    balance = current_inventory['qty'] - current_order['qty']
+    if balance >= 0:
+        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "fullfilled"}})
+        db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
+        print("Order fullfilled successfully.")
+    else:
+        raise ValueError("Can't fullfil this order. Not enough books in inventory.")
+
+if __name__ == "__main__":
+    # Connect to database
     client = MongoClient('localhost:27017')
     db = client.bookstore
-    return db
 
-def add_books(db):
+    # Cleanup database
+    db["books"].delete_many({})
+    db["inventory"].delete_many({})
+    db["customers"].delete_many({})
+    db["orders"].delete_many({})
+
+    # Insert sample data for books
     db.books.insert(
         [{
             "_id": 1,
@@ -37,7 +96,7 @@ def add_books(db):
         }]
     )
 
-def add_inventory(db):
+    # Insert sample data for inventory
     db.inventory.insert(
         [{
             "book_id": 1,
@@ -53,9 +112,8 @@ def add_inventory(db):
             "last_modified": datetime.datetime.utcnow()
         }]
     )
-
-
-def add_customer(db):
+    
+    # Insert sample data for books
     db.customers.insert(
         [{
             "_id": 1,
@@ -78,66 +136,6 @@ def add_customer(db):
         }]
     )
 
-
-def get_book(db, book_id):
-    return db.books.find_one({'_id': book_id})
-
-
-def get_inventory(db):
-    return db.inventory.find({})
-
-
-def get_customer(db, customer_id):
-    return db.customers.find_one({'_id': customer_id})
-
-def get_orders(db):
-    return db.orders.find({})
-
-
-def get_available_books(db):
-    available_books = []
-    for record in db.inventory.find({}):
-        book_id = record['book_id']
-        qty = record['qty']
-        if qty <= 0:
-            continue
-        book = db.books.find_one({'_id': book_id})
-        book['qty'] = qty
-        available_books.append(book)
-    return available_books
-
-
-def place_order(db, customer_id, book_id, qty):
-    db.orders.insert({
-            "customer_id": customer_id,
-            "book_id": book_id,
-            "qty": qty,
-            "status": "Created"
-        })
-
-    print("Order placed successfully.")
-
-def fullfil_order(db, order_id):
-    current_order = db.orders.find_one({"_id": order_id})
-    current_inventory = db.inventory.find_one({"book_id": current_order['book_id']})
-    balance = current_inventory['qty'] - current_order['qty']
-    if balance >= 0:
-        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "fullfilled"}})
-        db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
-        print("Order fullfilled successfully.")
-    else:
-        raise ValueError("Can't fullfil this order. Not enough books in inventory.")
-
-if __name__ == "__main__":
-    db = get_db()
-    db["books"].delete_many({})
-    db["inventory"].delete_many({})
-    db["customers"].delete_many({})
-    db["orders"].delete_many({})
-    add_books(db)
-    add_customer(db)
-    add_inventory(db)
-    
     print("\n Current Inventory:")
     print("Book Title", "Quantity")
     for book in get_available_books(db):
