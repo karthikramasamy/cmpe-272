@@ -9,4 +9,9 @@ install:
   - pip install -e .
 # command to run tests
 script:
-  - pytest
+  - pytest --cov=./
+  - coverage run tests.py
+
+# Push the results back to codecov
+after_success:
+  - codecov
