@@ -1,7 +1,7 @@
 import unittest
 import mongomock
 import json
-from bookstore import bookstore
+from bookstore import bookstore_api
 
 class BookStoreUnitTests(unittest.TestCase):
     def setUp(self):
