@@ -1,9 +1,10 @@
 import unittest
 import mongomock
 import json
-import bookstore
+from bookstore import bookstore_api
 
 class BookStoreUnitTests(unittest.TestCase):
+    
     def setUp(self):
         self.db = mongomock.MongoClient()['bookstore']
         self.db.books.insert_one({'_id': 1, 'title': 'A test book'})
@@ -20,15 +21,15 @@ class BookStoreUnitTests(unittest.TestCase):
         self.db["orders"].delete_many({})
 
     def test_get_book(self):
-        book = bookstore.get_book(self.db, 1)
+        book = bookstore_api.get_book(self.db, 1)
         self.assertEqual(book['_id'], 1)
 
     def test_get_books(self):
-        books = bookstore.get_books(self.db)
+        books = bookstore_api.get_books(self.db)
         self.assertEquals(books.count(), 3)
 
     def test_get_available_books(self):
-        books = bookstore.get_available_books(self.db)
+        books = bookstore_api.get_available_books(self.db)
         self.assertEquals(len(books), 1)
 
 if __name__ == '__main__':
