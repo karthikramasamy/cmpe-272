@@ -1,4 +1,0 @@
-pymongo
-mongomock
-pytest 
-pytest-cov

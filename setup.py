@@ -1,15 +1,31 @@
-#!/usr/bin/env python
+import io
 
-from distutils.core import setup
-from glob import glob
+from setuptools import find_packages, setup
 
-from setuptools import find_packages
+with io.open('README.rst', 'rt', encoding='utf8') as f:
+    readme = f.read()
 
-setup(name='bookstore',
-      version='1.0',
-      description='Python Distribution Utilities',
-      author='Karthik Ramasamy',
-      packages=find_packages('src'),
-      package_dir={'': 'src'},
-      py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
-     )
+setup(
+    name='bookstore',
+    version='1.0.0',
+    url='https://github.com/karthikramasamy/cmpe-272/',
+    license='BSD',
+    maintainer='Karthik Ramasamy',
+    description='The basic bookstore app built for the SJSU CMPE-272 Spring 2019 course.',
+    long_description=readme,
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[
+        'flask',
+        'pymongo',
+    ],
+    extras_require={
+        'test': [
+            'mongomock',
+            'pytest',
+            'pytest-cov',
+            'coverage',
+        ],
+    },
+)
