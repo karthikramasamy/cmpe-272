@@ -7,6 +7,7 @@ services: mongodb
 # command to install dependencies
 install:
   - pip install -e .
+  - pip install coverage
 before_script:
   - export FLASK_APP="$TRAVIS_BUILD_DIR/bookstore"
   - export FLASK_ENV=development
