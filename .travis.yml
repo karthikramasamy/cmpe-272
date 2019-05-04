@@ -7,7 +7,11 @@ install:
   - pip install -e .
 # command to run tests
 script:
-  - pytest --cov=./
+  - pip install '.[test]'
+  - pytest
+  - coverage run -m pytest
+  - coverage report
+  - coverage html
 
 # Push the results back to codecov
 after_success:
