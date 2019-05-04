@@ -8,6 +8,7 @@ services: mongodb
 install:
   - pip install -e .
   - pip install coverage
+  - pip install mongomock
 before_script:
   - export FLASK_APP="$TRAVIS_BUILD_DIR/bookstore"
   - export FLASK_ENV=development
