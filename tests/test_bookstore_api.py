@@ -9,7 +9,7 @@ def test_get_books(client, auth, app):
     assert response.status_code == 200
     assert response.is_json
 
-    data = json.loads(response.data)
+    data = response.get_json()
 
     assert response.status_code == 200
     assert data is not None and len(data) > 0
@@ -21,7 +21,7 @@ def test_get_book_by_isbn(client, auth, app):
     assert response.status_code == 200
     assert response.is_json
 
-    data = json.loads(response.data)
+    data = response.get_json()
 
     assert response.status_code == 200
     assert data['isbn'] == b'1524763136'
@@ -40,7 +40,7 @@ def test_place_order(client):
     assert response.status_code == 200
     assert response.is_json
 
-    data = json.loads(response.data)
+    data = response.get_json()
     assert data['status'] == b'Created'
 
 
@@ -57,7 +57,7 @@ def test_fulfill_order(client):
     assert response.status_code == 200
     assert response.is_json
 
-    data = json.loads(response.data)
+    data = response.get_json()
     assert data['status'] == b'Created'
 
     order_id = data['_id']
@@ -67,5 +67,5 @@ def test_fulfill_order(client):
     assert response.status_code == 200
     assert response.is_json
 
-    data = json.loads(response.data)
+    data = response.get_json()
     assert data['status'] == b'Fulfilled'
