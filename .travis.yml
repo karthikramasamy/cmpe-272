@@ -11,8 +11,6 @@ before_script:
   - export FLASK_APP="$TRAVIS_BUILD_DIR/bookstore"
   - export FLASK_ENV=development
   - export FLASK_DEBUG=1
-  - flask init-db
-  - flask run
 
 # command to run tests
 script:
