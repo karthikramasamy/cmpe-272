@@ -1,15 +1,23 @@
 language: python
 python:
   - "3.5"
-  
+
+services: mongodb
+
 # command to install dependencies
 install:
-  - pip install -r requirements.txt
   - pip install -e .
+  - pip install coverage codecov mongomock
+before_script:
+  - export FLASK_APP="$TRAVIS_BUILD_DIR/bookstore"
+  - export FLASK_ENV=development
+  - export FLASK_DEBUG=1
+
 # command to run tests
 script:
-  - pytest --cov=./
+  - coverage run -m pytest
+  - coverage report
 
 # Push the results back to codecov
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
