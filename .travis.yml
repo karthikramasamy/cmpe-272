@@ -5,6 +5,13 @@ python:
 # command to install dependencies
 install:
   - pip install -e .
+before_script:
+  - export FLASK_APP="$TRAVIS_BUILD_DIR/bootstrap"
+  - export FLASK_ENV=development
+  - export FLASK_DEBUG=1
+  - flask init-db
+  - flask run
+
 # command to run tests
 script:
   - pip install '.[test]'
