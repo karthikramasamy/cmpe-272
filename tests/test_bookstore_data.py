@@ -132,10 +132,10 @@ class BookStoreUnitTests(unittest.TestCase):
         self.assertIsNotNone(order)
         self.assertEquals(order['_id'], placed_order['_id'])
 
-    def test_fullfil_order(self):
+    def test_fulfill_order(self):
        orders = bookstore_data.get_orders(self.db)
        for order in orders:
-           bookstore_data.fullfil_order(self.db, order['_id'])
+           bookstore_data.fulfill_order(self.db, order['_id'])
 
 
 if __name__ == '__main__':

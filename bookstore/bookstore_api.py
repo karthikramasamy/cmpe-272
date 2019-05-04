@@ -87,11 +87,11 @@ def place_order():
 @bp.route("orders/<order_id>", methods=['PUT'])
 def fulfill_order(order_id):
     """
-       API to fullfil an existing order.
+       API to fulfill an existing order.
        """
     try:
         _id = ObjectId(order_id)
-        order = bookstore_data.fullfil_order(get_db(), _id)
+        order = bookstore_data.fulfill_order(get_db(), _id)
         return jsonify(order)
     except ValueError as ve:
         print(ve.message)

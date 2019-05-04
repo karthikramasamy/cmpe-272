@@ -88,17 +88,17 @@ def place_order(db, customer_id, book_id, qty):
     return order
 
 
-def fullfil_order(db, order_id):
+def fulfill_order(db, order_id):
     current_order = db.orders.find_one({'_id': ObjectId(order_id)})
     current_inventory = db.inventory.find_one({"book_id": current_order['book_id']})
     balance = current_inventory['qty'] - current_order['qty']
     if balance >= 0:
-        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fullfilled"}})
+        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
         db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
         return get_order_by_id(db, order_id)
     else:
         raise ValueError(
-            "Can't fullfil this order. Not enough books in inventory.")
+            "Can't fulfill this order. Not enough books in inventory.")
 
 
 if __name__ == "__main__":
@@ -128,9 +128,9 @@ if __name__ == "__main__":
             print(order['_id'], order['customer_id'],
                   order['book_id'], order['qty'], order['status'])
 
-        print("\n Fullfilling the order for customer 1 ...")
+        print("\n fulfillling the order for customer 1 ...")
         order = db.orders.find_one({"customer_id": 1})
-        fullfil_order(db, order['_id'])
+        fulfill_order(db, order['_id'])
 
         print("\n Updated Inventory:")
         print("Book Title", "Quantity")
@@ -143,6 +143,6 @@ if __name__ == "__main__":
             print(order['_id'], order['customer_id'],
                   order['book_id'], order['qty'], order['status'])
 
-        print("\n Fullfilling the order for customer 2 ...")
+        print("\n fulfillling the order for customer 2 ...")
         order = db.orders.find_one({"customer_id": 2})
-        fullfil_order(db, order['_id'])
+        fulfill_order(db, order['_id'])
