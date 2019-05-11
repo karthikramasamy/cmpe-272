@@ -76,8 +76,7 @@ class BookStoreUnitTests(unittest.TestCase):
                 "last_modified": datetime.datetime.utcnow()
             }]
         )
-
-        bookstore_data.place_order(self.db, "0123456789ab012345678901", "0123456789ab012345678901", 2)
+        bookstore_data.place_order(self.db, "0123456789ab012345678901", [{"book_id": "0123456789ab012345678901", "qty": 2}])
 
     def tearDown(self):
         # Cleanup database
@@ -126,7 +125,7 @@ class BookStoreUnitTests(unittest.TestCase):
         self.assertGreaterEqual(len(orders), 1)
 
     def test_get_order_by_id(self):
-        placed_order = bookstore_data.place_order(self.db, "0123456789ab012345678901", "0123456789ab012345678901", 2)
+        placed_order = bookstore_data.place_order(self.db, "0123456789ab012345678901", [{"book_id": "0123456789ab012345678901", "qty": 2}])
         self.assertIsNotNone(placed_order)
         order = bookstore_data.get_order_by_id(self.db, placed_order['_id'])
         self.assertIsNotNone(order)

@@ -71,13 +71,12 @@ def place_order():
         try:
             order_data = request.get_json()
             customer_id = order_data['customer_id']
-            book_id = order_data['book_id']
-            qty = order_data['qty']
+            items = order_data['items']
         except Exception as ex:
             print(ex)
             return json_error_response("Invalid input in order details", 404)
 
-        order = bookstore_data.place_order(get_db(), customer_id, book_id, qty)
+        order = bookstore_data.place_order(get_db(), customer_id, items)
         return jsonify(order)
     except Exception as ex:
         print(ex)

@@ -75,13 +75,14 @@ def get_order_by_id(db, order_id):
     return order
 
 
-def place_order(db, customer_id, book_id, qty):
-    result = db.orders.insert_one({
+def place_order(db, customer_id, items):
+    order = {
         "customer_id": customer_id,
-        "book_id": book_id,
-        "qty": qty,
+        "items": items,
         "status": "Created"
-    })
+    }
+
+    result = db.orders.insert_one(order)
     order = db.orders.find_one({'_id': result.inserted_id})
     if order != None:
         order['_id'] = str(order['_id'])
@@ -90,15 +91,23 @@ def place_order(db, customer_id, book_id, qty):
 
 def fulfill_order(db, order_id):
     current_order = db.orders.find_one({'_id': ObjectId(order_id)})
-    current_inventory = db.inventory.find_one({"book_id": current_order['book_id']})
-    balance = current_inventory['qty'] - current_order['qty']
-    if balance >= 0:
-        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
-        db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
+    is_fulfillable = True
+    for item in current_order['items']:
+        current_inventory = db.inventory.find_one({"book_id": item['book_id']})
+        balance = current_inventory['qty'] - item['qty']
+        if balance < 0:
+             is_fulfillable = False
+             break
+
+    if is_fulfillable:
+        for item in current_order['items']:
+            current_inventory = db.inventory.find_one({"book_id": item['book_id']})
+            balance = current_inventory['qty'] - item['qty']
+            db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
+            db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
         return get_order_by_id(db, order_id)
     else:
-        raise ValueError(
-            "Can't fulfill this order. Not enough books in inventory.")
+        raise ValueError("Can't fulfill this order. Not enough books in inventory.")
 
 
 if __name__ == "__main__":
@@ -119,14 +128,13 @@ if __name__ == "__main__":
             print(book['title'], book['qty'])
 
         print("\n Place some orders ...")
-        place_order(db, 1, 1, 2)
-        place_order(db, 2, 2, 2)
+        place_order(db, 1, [{"book_id": "0123456789ab012345678901", "qty": 2}, {"book_id": "0123456789ab012345678901", "qty": 1}])
+        place_order(db, 2, [{"book_id": "0123456789ab012345678902", "qty": 2}, {"book_id": "0123456789ab012345678901", "qty": 1}])
 
         print("\n Current Orders:")
         print("Order ID", "Customer ID", "Book ID", "Quantity", "Status")
         for order in get_orders(db):
-            print(order['_id'], order['customer_id'],
-                  order['book_id'], order['qty'], order['status'])
+            print(order['_id'], order['customer_id'], order['items'], order['status'])
 
         print("\n fulfillling the order for customer 1 ...")
         order = db.orders.find_one({"customer_id": 1})
@@ -140,8 +148,7 @@ if __name__ == "__main__":
         print("\n Updated Orders:")
         print("Order ID", "Customer ID", "Book ID", "Quantity", "Status")
         for order in get_orders(db):
-            print(order['_id'], order['customer_id'],
-                  order['book_id'], order['qty'], order['status'])
+            print(order['_id'], order['customer_id'], order['items'], order['status'])
 
         print("\n fulfillling the order for customer 2 ...")
         order = db.orders.find_one({"customer_id": 2})

@@ -30,9 +30,8 @@ def test_get_book_by_isbn(client, auth, app):
 def test_place_order(client):
 
     json_data = {
-        "book_id": "0123456789ab012345678903",
         "customer_id": "0123456789ab012345678901",
-        "qty": 1,
+        "items": [{"book_id": "0123456789ab012345678903", "qty": 1}]
     }
 
     response = client.post('/api/v1/orders', json=json_data)
@@ -47,9 +46,8 @@ def test_place_order(client):
 def test_fulfill_order(client):
 
     json_data = {
-        "book_id": "0123456789ab012345678903",
         "customer_id": "0123456789ab012345678901",
-        "qty": 1,
+        "items": [{"book_id": "0123456789ab012345678903", "qty": 1}]
     }
 
     response = client.post('/api/v1/orders', json=json_data)
