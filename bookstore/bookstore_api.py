@@ -2,15 +2,15 @@ from flask import request, jsonify, Blueprint
 from bson.objectid import ObjectId
 from bookstore import bookstore_data
 from bookstore.bookstore_db import get_db
+from bookstore.crossdomain import crossdomain
 import datetime
 import json
 import ast
 import imp
-from crossdomain import crossdomain
 bp = Blueprint('bookstore_api', __name__, url_prefix='/api/v1/')
 
 
-def json_error_response(staus_code, message):
+def json_error_response(message, staus_code):
     error = {
         'status': staus_code,
         'message': message
@@ -87,6 +87,21 @@ def place_order():
         return json_error_response("Error while placing the order", 500)
 
 
+@bp.route("orders/<order_id>", methods=['GET'])
+@crossdomain(origin='*')
+def get_order(order_id):
+    """
+       API to get the order details.
+       """
+    try:
+        _id = ObjectId(order_id)
+        order = bookstore_data.get_order_by_id(get_db(), _id)
+        return jsonify(order)
+    except Exception as ex:
+        print(ex)
+        return json_error_response("Unexpected error while retrieving the order.", 500)
+
+
 @bp.route("orders/<order_id>", methods=['PUT'])
 @crossdomain(origin='*')
 def fulfill_order(order_id):
@@ -98,39 +113,12 @@ def fulfill_order(order_id):
         order = bookstore_data.fulfill_order(get_db(), _id)
         return jsonify(order)
     except ValueError as ve:
-        print(ve.message)
-        return json_error_response(ve.message, 404)
+        return json_error_response(str(ve), 404)
     except Exception as ex:
-        print(ex)
-        return json_error_response("Unexpected error while fulfilling the order.", 500)
+        return json_error_response("Unexpected error while fulfilling the order. " + str(ex), 500)
 
-@bp.route("orders/<order_id>", methods=['GET'])
-@crossdomain(origin='*')
-def get_order(order_id):
-	"""
-		API to fulfill an existing order.
-		"""
-	try:
-		_id = ObjectId(order_id)
-		order = bookstore_data.get_order_by_id(get_db(), _id)
-		return jsonify(order)
-	except Exception as ex:
-		print(ex)
-		return json_error_response("Unexpected error while fulfilling the order.", 500)
 
 @bp.errorhandler(404)
 def page_not_found(e):
     """Send message to the user with notFound 404 status."""
-    # Message to the user
-    message = {
-        "err":
-            {
-                "msg": "This route is currently not supported. Please refer API documentation."
-            }
-    }
-    # Making the message looks good
-    resp = jsonify(message)
-    # Sending OK response
-    resp.status_code = 404
-    # Returning the object
-    return resp
+    return json_error_response("Page Not Found. Refer to the API documentation.", 404)
