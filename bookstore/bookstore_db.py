@@ -11,7 +11,7 @@ def get_db():
     again.
     """
     if 'db_client' not in g:
-        g.db_client = MongoClient('localhost:27017')
+        g.db_client = MongoClient('mongodb://admin1:admin123@localhost:27017')
     if 'db' not in g:
         g.db = g.db_client.bookstore
     return g.db
