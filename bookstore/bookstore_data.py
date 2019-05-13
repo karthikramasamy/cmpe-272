@@ -96,17 +96,18 @@ def fulfill_order(db, order_id):
         raise ValueError("This order is already fulfilled.")
 
     is_fulfillable = True
+    print "test2"
+    print ("order-ID:"+str(order_id))
     for item in current_order['items']:
         current_inventory = db.inventory.find_one({"book_id": item['book_id']})
-        balance = current_inventory['qty'] - item['qty']
+        balance = current_inventory['qty'] - int(item['qty'])
         if balance < 0:
              is_fulfillable = False
              break
 
     if is_fulfillable:
         for item in current_order['items']:
-            current_inventory = db.inventory.find_one({"book_id": item['book_id']})
-            balance = current_inventory['qty'] - item['qty']
+            balance = current_inventory['qty'] - int(item['qty'])
             db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
             db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
         return get_order_by_id(db, order_id)
