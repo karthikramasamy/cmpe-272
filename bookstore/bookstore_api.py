@@ -2,11 +2,11 @@ from flask import request, jsonify, Blueprint
 from bson.objectid import ObjectId
 from bookstore import bookstore_data
 from bookstore.bookstore_db import get_db
+from bookstore.crossdomain import crossdomain
 import datetime
 import json
 import ast
 import imp
-from crossdomain import crossdomain
 bp = Blueprint('bookstore_api', __name__, url_prefix='/api/v1/')
 
 
