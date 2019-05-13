@@ -91,20 +91,27 @@ def place_order(db, customer_id, items):
 
 def fulfill_order(db, order_id):
     current_order = db.orders.find_one({'_id': ObjectId(order_id)})
+
+    if current_order['status'] == 'Fulfilled':
+        raise ValueError("This order is already fulfilled.")
+
     is_fulfillable = True
+    inventory_balances = {}
+
     for item in current_order['items']:
-        current_inventory = db.inventory.find_one({"book_id": item['book_id']})
-        balance = current_inventory['qty'] - item['qty']
-        if balance < 0:
+        item_inventory = db.inventory.find_one({"book_id": item['book_id']})
+        balance = int(item_inventory['qty']) - int(item['qty'])
+        if balance >= 0:
+            inventory_balances.update({item_inventory['_id']: balance})
+        else:
              is_fulfillable = False
              break
 
     if is_fulfillable:
-        for item in current_order['items']:
-            current_inventory = db.inventory.find_one({"book_id": item['book_id']})
-            balance = current_inventory['qty'] - item['qty']
-            db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
-            db.inventory.update_one({"_id": current_inventory['_id']}, {"$set": {"qty": balance}})
+        for id, qty in inventory_balances.items():
+            db.inventory.update_one({"_id": id}, {"$set": {"qty": qty}})
+        
+        db.orders.update_one({"_id": current_order['_id']}, {"$set": {"status": "Fulfilled"}})
         return get_order_by_id(db, order_id)
     else:
         raise ValueError("Can't fulfill this order. Not enough books in inventory.")
@@ -128,8 +135,8 @@ if __name__ == "__main__":
             print(book['title'], book['qty'])
 
         print("\n Place some orders ...")
-        place_order(db, 1, [{"book_id": "0123456789ab012345678901", "qty": 2}, {"book_id": "0123456789ab012345678901", "qty": 1}])
-        place_order(db, 2, [{"book_id": "0123456789ab012345678902", "qty": 2}, {"book_id": "0123456789ab012345678901", "qty": 1}])
+        place_order(db, 1, [{"book_id": "0123456789ab012345678901", "qty": 2}, {"book_id": "0123456789ab012345678902", "qty": 1}])
+        place_order(db, 2, [{"book_id": "0123456789ab012345678901", "qty": 2}, {"book_id": "0123456789ab012345678902", "qty": 1}])
 
         print("\n Current Orders:")
         print("Order ID", "Customer ID", "Book ID", "Quantity", "Status")
