@@ -86,10 +86,12 @@ def place_order():
         print(ex)
         return json_error_response("Error while placing the order", 500)
 
+
 @bp.route("orders/<order_id>", methods=['GET'])
+@crossdomain(origin='*')
 def get_order(order_id):
     """
-       API to fulfill an existing order.
+       API to get the order details.
        """
     try:
         _id = ObjectId(order_id)
@@ -97,7 +99,8 @@ def get_order(order_id):
         return jsonify(order)
     except Exception as ex:
         print(ex)
-        return json_error_response("Unexpected error while fulfilling the order.", 500)
+        return json_error_response("Unexpected error while retrieving the order.", 500)
+
 
 @bp.route("orders/<order_id>", methods=['PUT'])
 @crossdomain(origin='*')
@@ -114,19 +117,6 @@ def fulfill_order(order_id):
     except Exception as ex:
         return json_error_response("Unexpected error while fulfilling the order. " + str(ex), 500)
 
-@bp.route("orders/<order_id>", methods=['GET'])
-@crossdomain(origin='*')
-def get_order(order_id):
-	"""
-		API to fulfill an existing order.
-		"""
-	try:
-		_id = ObjectId(order_id)
-		order = bookstore_data.get_order_by_id(get_db(), _id)
-		return jsonify(order)
-	except Exception as ex:
-		print(ex)
-		return json_error_response("Unexpected error while fulfilling the order.", 500)
 
 @bp.errorhandler(404)
 def page_not_found(e):
