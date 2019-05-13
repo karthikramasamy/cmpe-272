@@ -91,6 +91,10 @@ def place_order(db, customer_id, items):
 
 def fulfill_order(db, order_id):
     current_order = db.orders.find_one({'_id': ObjectId(order_id)})
+
+    if current_order['status'] == 'Fulfilled':
+        raise ValueError("This order is already fulfilled.")
+
     is_fulfillable = True
     for item in current_order['items']:
         current_inventory = db.inventory.find_one({"book_id": item['book_id']})

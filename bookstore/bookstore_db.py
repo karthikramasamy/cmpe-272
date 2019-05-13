@@ -3,7 +3,11 @@ import click
 import datetime
 from flask import current_app, g
 from flask.cli import with_appcontext
+import os
 
+MONGO_URL = os.environ.get('MONGO_URL')
+if not MONGO_URL:
+    MONGO_URL = "mongodb://localhost:27017"
 
 def get_db():
     """Connect to the application's configured database. The connection
@@ -11,7 +15,7 @@ def get_db():
     again.
     """
     if 'db_client' not in g:
-        g.db_client = MongoClient('localhost:27017')
+        g.db_client = MongoClient(MONGO_URL)
     if 'db' not in g:
         g.db = g.db_client.bookstore
     return g.db
