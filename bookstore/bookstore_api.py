@@ -7,8 +7,58 @@ import datetime
 import json
 import ast
 import imp
+import jwt
+from functools import wraps
+
 bp = Blueprint('bookstore_api', __name__, url_prefix='/api/v1/')
 
+#app.config['SECRET_KEY'] = 'aquickfoxjumpedovertheriver~!@`123`'
+
+# Format error response and append status code.
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+ 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token_auth_header()
+        try:
+            jwt.decode(token, 'aquickfoxjumpedovertheriver')
+        except:
+            return json_error_response("Token is invalid", 403)
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+ 
+def get_token_auth_header():
+    """Obtains the access token from the Authorization Header"""
+    auth = request.headers.get("Authorization", None)
+    if not auth:
+        raise AuthError({"code": "authorization_header_missing", "description": "Authorization header is expected"}, 401)
+
+    parts = auth.split()
+    print(parts)
+
+    if parts[0].lower() != "bearer":
+        raise AuthError({"code": "invalid_header",
+                        "description": "Authorization header must start with Bearer"}, 401)
+    elif len(parts) == 1:
+        raise AuthError({"code": "invalid_header",
+                        "description": "Token not found"}, 401)
+    elif len(parts) > 2:
+        raise AuthError({"code": "invalid_header",
+                        "description":
+                            "Authorization header must be"
+                            " Bearer token"}, 401)
+
+    token = parts[1]
+    print(token)
+    return token
 
 def json_error_response(message, staus_code):
     error = {
@@ -17,6 +67,24 @@ def json_error_response(message, staus_code):
     }
     return (jsonify(error), staus_code)
 
+
+def basic_authenticate_user_credentials(auth):
+    if auth and auth.password == 'secret':
+        return auth.username
+    else:
+        raise AuthError({"code": "401", "description": "Authorization header is expected"}, 401)
+
+@bp.route('/login')
+def login():
+    try:
+        user_name = basic_authenticate_user_credentials(request.authorization)
+    except Exception as ex:
+        print(ex)
+        return json_error_response("Authentication Failure.", 401)
+
+    token = jwt.encode({'user' : user_name, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(seconds=120)}, 'aquickfoxjumpedovertheriver')
+    return jsonify({'token' : token.decode()})
+    
 
 @bp.route("books", methods=['GET'])
 @crossdomain(origin='*')
@@ -34,6 +102,7 @@ def get_all_books():
 
 @bp.route("books/<isbn>", methods=['GET'])
 @crossdomain(origin='*')
+@token_required
 def get_book(isbn):
     """
        API to get the details of a book.
@@ -52,6 +121,7 @@ def get_book(isbn):
 
 @bp.route("orders", methods=['GET'])
 @crossdomain(origin='*')
+@token_required
 def get_all_orders():
     """
        API to get all the orders.
@@ -66,6 +136,7 @@ def get_all_orders():
 
 @bp.route("orders", methods=['POST'])
 @crossdomain(origin='*')
+@token_required
 def place_order():
     """
        API to create new order.
@@ -89,6 +160,7 @@ def place_order():
 
 @bp.route("orders/<order_id>", methods=['GET'])
 @crossdomain(origin='*')
+@token_required
 def get_order(order_id):
     """
        API to get the order details.
@@ -104,6 +176,7 @@ def get_order(order_id):
 
 @bp.route("orders/<order_id>", methods=['PUT'])
 @crossdomain(origin='*')
+@token_required
 def fulfill_order(order_id):
     """
        API to fulfill an existing order.
