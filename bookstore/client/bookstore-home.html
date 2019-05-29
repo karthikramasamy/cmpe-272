@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+/conf<!DOCTYPE html>
 <html>
 <head>
     <title>Convert JSON Data to HTML Table</title>
@@ -101,6 +101,22 @@
         .hide {
             display: none;
         }
+        .tohide {
+            display: none;
+        }
+        .order {
+          width: 40%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          box-sizing: border-box;
+          border: 2px solid red;
+          border-radius: 4px;
+        }
+        .error {
+            padding: 20px;
+              background-color: #f44336;
+              color: white;
+        }
     </style>
 </head>
 <body>
@@ -114,19 +130,20 @@
 
 <!-- The flexible grid (content) -->
 <div class="row">
-    <div class="side">
+    <div id='side' class="side">
+        <div class='error hide'>Invalid User Name or Password</div>
         User Name:<br>
-        <input type="text" class="user" name="firstname" value="">
+        <input type="text" class="user" name="userid" value="" id="email">
         <br>
         Password:<br>
-        <input type="password" name="lastname" class="user" value="">
+        <input type="password" name="password" class="user" value="" id="pwd">
         <br><br>
-        <input type="submit" class="signin" value="SignIn">
+        <input type="submit" class="signin" value="SignIn" id="btn-login">
     </form> </p>
     </div>
     <div class="main">
         <p id="showData"></p>
-        <input type="button" onclick="PlaceOrder()" value="Place the order" />
+        <input type="button" onclick="PlaceOrder()" value="Place the order" class='order hide'/>
         
     </div>
 </div>
@@ -134,10 +151,11 @@
 
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script src="https://cdn.auth0.com/js/auth0/9.10/auth0.min.js"></script>
 <script>
-    var table
+    var table, token;
     $(document).ready(function(){
-        //make an Ajax call to api
+        $('#btn-login').on('click', submit);
         $.ajax({
             url: "http://10.29.202.99:5000/api/v1/books",
             dataType: 'json',
@@ -149,6 +167,36 @@
                 alert("error occured");
             },
         });
+        /*var idToken;
+        var accessToken;
+        var expiresAt;
+
+          var webAuth = new auth0.WebAuth({
+            domain: 'dev-93vs-avb.auth0.com',
+            clientID: 'D89f7KGFSngsOTjzsvPEVeJXFlhMgMGd',
+            responseType: 'token id_token',
+            scope: 'openid',
+            redirectUri: window.location.href
+          });
+
+  var loginBtn = document.getElementById('btn-login');
+
+  loginBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    webAuth.authorize();
+  });
+        //make an Ajax call to api
+        $.ajax({
+            url: "http://10.29.202.99:5000/api/v1/books",
+            dataType: 'json',
+            method: 'GET',
+            success: function(myBooks){
+                CreateTableFromJSON(myBooks);
+            },
+            error: function(){
+                alert("error occured");
+            },
+        });*/
     });
     //then with the response call CreateTableFromJSON
     function CreateTableFromJSON(myBooks) {
@@ -185,6 +233,7 @@
             }
             var input = document.createElement("input");
             tr.insertCell(-1).appendChild(input);
+            input.classList.add('hide');
         }
 
         // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
@@ -205,7 +254,10 @@
             data: JSON.stringify(orderPlaced),
             dataType: 'json',
             method: 'POST',
-            contentType: 'application/x-www-form-urlencoded',
+            // contentType: 'application/x-www-form-urlencoded',
+            headers : {
+             "Authorization": "Bearer "+token,
+            },
             success: function(resp){
                 //showStatus(resp);
                 var ID = '_id';
@@ -247,7 +299,32 @@
         $('#status').html(status);
         $('#id').html(Order_ID);
     }
+    function submit(){
+        var email = $('#email').val();
+        var pwd = $('#pwd').val();
+        $.ajax({
+            url: "http://10.29.202.99:5000/api/v1/loginui",
+            dataType: 'json',
+            method: 'GET',
+            username: email,
+            password: pwd,
+            headers : {
+             "Authorization": "Basic " + btoa(email+":"+pwd),
+            },
+            success: function(resp){
+                token = JSON.parse(resp).access_token;
+                if(token) {
+                    var userName = email .slice(0, email.indexOf('@'));
+                    document.getElementById('side').innerHTML =  'Hello ' + userName+ ', Welcome to AMK ONLINE BOOKS' + '<br> ' + 'You are officially a OMK member ' + userName + '!';
+                    $('.hide').css('display', 'inline-block');
+                } else {
+                    $('.error').removeClass('hide');
+                    $('#email').val(''); 
+                    $('#pwd').val(''); 
+                }
+            },
+        });
+    }
 
 </script>
 </html>
-

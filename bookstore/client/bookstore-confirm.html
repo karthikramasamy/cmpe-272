@@ -142,6 +142,11 @@
         $.ajax({
             url: "http://10.29.202.99:5000/api/v1/orders/"+param,
             dataType: 'json',
+            //contentType: 'application/json',
+            //xhrFields: {
+            //withCredentials: true,
+            //},
+            //crossDomain: true,
             method: 'GET',
             success: function(resp){
                 showStatus(resp);
@@ -163,4 +168,3 @@
 
 </script>
 </html>
-
