@@ -8,60 +8,27 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="AMK Bookstore." />
+  <meta name="description" content="AMK Bookstore" />
   <meta name="author" content="Karthik Ramasamy" />
 
   <link rel="icon" href="/favicon.ico" />
 
   <link rel="stylesheet" type="text/css" href="/static/resources/external/css/bootstrap.min.css" />
-  <link rel="stylesheet" type="text/css" href="/static/resources/custom/themes/default/default.css" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+
+  <link rel="stylesheet" type="text/css" href="/static/resources/css/default.css" />
 
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="/static/resources/external/js/bootstrap.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-
-  <script type="text/javascript">
-    $( document ).ready(function(){
-        $('#bookList').DataTable(
-              {
-                "paging"	: true,
-                "ordering"	: true,
-                "searching"	: true,
-                "info" 		: true,
-                "autoWidth"	: false,
-        
-                "lengthMenu": [[25, 50, 100, 500, -1],[25, 50, 100, 500, "All" ]],
-                "order"		: [[ 1, "asc"]],
-
-                "ajax": {
-                        "url": "/api/v1/books",
-                        "dataType": "json",
-                        "dataSrc": "",
-                        "contentType":"application/json"
-                      },
-
-                "columns" : [
-                  {"data" : 'title', "title" : 'Title'},
-                  {"data" : 'isbn', "title" : 'ISBN'},
-                  {"data" : 'author', "title" : 'Author'},
-                  {"data" : 'qty', "title" : 'Available Qty'},
-                  {"data" : 'language', "title" : 'Language', "className" : "hidden-xs hidden-sm"},
-                  {"data" : 'publisher', "title" : 'Publisher', "className" : "hidden-xs hidden-sm"},
-                  {"data" : 'published_date', "title" : 'Published On', "className" : "hidden-xs hidden-sm"}
-                ]
-              });
-    });
-  </script>
 </head>
 
 <body>
   <div class="container">
     <div class="container">
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="/"><img class="companylogo hidden-xs" alt="Logo"
-            src="/static/resources/custom/images/logo.png" />Bookstore</a>
+        <a class="navbar-brand" href="/"><img class="companylogo hidden-xs" alt="Logo" src="/static/logo.png" />Bookstore</a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
           <span class="navbar-toggler-icon"></span>
@@ -99,6 +66,39 @@
           <br />
           <p>You can find the current inventory of the books in our store in the table below. Please <a href="/login">login</a> to place orders.</p>
         </div>
+
+        <script type="text/javascript">
+          $( document ).ready(function(){
+              $('#bookList').DataTable(
+                    {
+                      "paging"	: true,
+                      "ordering"	: true,
+                      "searching"	: true,
+                      "info" 		: true,
+                      "autoWidth"	: false,
+              
+                      "lengthMenu": [[25, 50, 100, 500, -1],[25, 50, 100, 500, "All" ]],
+                      "order"		: [[ 1, "asc"]],
+      
+                      "ajax": {
+                              "url": "/api/v1/books",
+                              "dataType": "json",
+                              "dataSrc": "",
+                              "contentType":"application/json"
+                            },
+      
+                      "columns" : [
+                        {"data" : 'title', "title" : 'Title'},
+                        {"data" : 'isbn', "title" : 'ISBN'},
+                        {"data" : 'author', "title" : 'Author'},
+                        {"data" : 'qty', "title" : 'Available Qty'},
+                        {"data" : 'language', "title" : 'Language', "className" : "hidden-xs hidden-sm"},
+                        {"data" : 'publisher', "title" : 'Publisher', "className" : "hidden-xs hidden-sm"},
+                        {"data" : 'published_date', "title" : 'Published On', "className" : "hidden-xs hidden-sm"}
+                      ]
+                    });
+          });
+        </script>
 
         <h3>Current Inventory</h3>
         <div>
