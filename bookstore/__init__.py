@@ -136,16 +136,6 @@ def create_app(app_config=None):
         },
     )
 
-    @app.route("/")
-    def index():
-        message = {
-            'apiVersion': API_VERSION,
-            'status_code': 200,
-            'message': 'Welcome to the BookStore API'
-        }
-        return jsonify(message)
-
-
     @app.route('/status')
     def status():
         message = {
@@ -168,7 +158,7 @@ def create_app(app_config=None):
             'name': userinfo['name'],
             'picture': userinfo['picture']
         }
-        return redirect('/dashboard')
+        return redirect('/order')
         
     @app.route('/favicon.ico')
     def favicon():
@@ -185,14 +175,15 @@ def create_app(app_config=None):
         params = {'returnTo': url_for('home', _external=True), 'client_id': AUTH0_CLIENT_ID}
         return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
 
+    @app.route('/')
     @app.route('/home')
     def home():
         return render_template('home.html')
 
-    @app.route('/dashboard')
+    @app.route('/order')
     @requires_auth
-    def dashboard():
-        return render_template('dashboard.html',
+    def render_order_page():
+        return render_template('order.html',
                             userinfo=session[constants.PROFILE_KEY],
                             userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4))
 
