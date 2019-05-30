@@ -4,6 +4,7 @@ from werkzeug.exceptions import HTTPException
 from functools import wraps
 
 from bookstore.version import API_VERSION
+
 import jwt
 import datetime
 
@@ -11,17 +12,24 @@ JWT_SECRET_KEY = env.get('JWT_SECRET_KEY')
 if not JWT_SECRET_KEY:
     JWT_SECRET_KEY = "aquickfoxjumpedovertheriver"
 
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
 
-def basic_auth(auth):
+def fulfillment_token(auth):
     if auth and auth.password == 'secret':
-        return auth.username
+        user_name = auth.username
     else:
-        raise AuthError("Unauthorized", 401)
-
+        return jsonify_error("Unauthorized", 401)
+        
+    try:
+        token = jwt.encode({'user': user_name, 'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=300)}, JWT_SECRET_KEY)
+        return jsonify({'token': token.decode()})
+    except Exception as ex:
+        print(ex)
+        return jsonify_error("Unexpected error while creating the auth token.", 500)
 
 def jsonify_error(message, staus_code):
     error = {
@@ -70,20 +78,25 @@ def get_token_auth_header():
     return token
 
 
-def create_app(test_config=None):
+def create_app(app_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True)
+
+    FLASK_SECRET_KEY = env.get('FLASK_SECRET_KEY')
+    if not FLASK_SECRET_KEY:
+        FLASK_SECRET_KEY = "secretdev"
+
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
-        SECRET_KEY='dev',
+        SECRET_KEY=FLASK_SECRET_KEY,
     )
 
-    if test_config is None:
+    if app_config is None:
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile('config.py', silent=True)
     else:
         # load the test config if passed in
-        app.config.update(test_config)
+        app.config.update(app_config)
 
     @app.route("/")
     def index():
@@ -93,17 +106,6 @@ def create_app(test_config=None):
             'message': 'Welcome to the BookStore API'
         }
         return jsonify(message)
-
-    @app.route('/token')
-    def login():
-        try:
-            user_name = basic_auth(request.authorization)
-        except AuthError as ex:
-            print(ex)
-            return jsonify_error("Authentication Failure.", 401)
-
-        token = jwt.encode({'user': user_name, 'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=300)}, JWT_SECRET_KEY)
-        return jsonify({'token': token.decode()})
 
     @app.route('/status')
     def status():

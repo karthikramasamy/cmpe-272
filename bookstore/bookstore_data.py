@@ -125,9 +125,7 @@ if __name__ == "__main__":
     from bookstore import create_app
     from bookstore import bookstore_db
 
-    app = create_app({
-        'TESTING': True,
-    })
+    app = create_app()
 
     with app.app_context():
         db = bookstore_db.init_db()

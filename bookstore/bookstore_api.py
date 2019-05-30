@@ -1,6 +1,7 @@
 from flask import request, jsonify, Blueprint, _request_ctx_stack, make_response
 from os import environ as env
 from bson.objectid import ObjectId
+from bookstore import fulfillment_token
 from bookstore import token_required
 from bookstore import bookstore_data
 from bookstore import jsonify_error
@@ -112,4 +113,9 @@ def fulfill_order(order_id):
         return jsonify_error(str(ve), 404)
     except Exception as ex:
         return jsonify_error("Unexpected error while fulfilling the order. " + str(ex), 500)
+
+
+@bp.route('/token', methods=['GET'])
+def create_token():
+    return fulfillment_token(request.authorization)
 
