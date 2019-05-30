@@ -19,7 +19,9 @@ setup(
     install_requires=[
         'flask',
         'pymongo',
-        'pyjwt'
+        'pyjwt',
+        'authlib',  
+        'six',
     ],
     extras_require={
         'test': [

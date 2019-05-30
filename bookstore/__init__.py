@@ -1,17 +1,22 @@
 from os import environ as env
-from flask import Flask, jsonify, request
+from os import path as path
+from flask import Flask, jsonify, request, session, redirect, render_template, url_for, send_from_directory
 from werkzeug.exceptions import HTTPException
 from functools import wraps
+from authlib.flask.client import OAuth
+from six.moves.urllib.parse import urlencode
 
 from bookstore.version import API_VERSION
+from bookstore import constants
 
+import json
 import jwt
 import datetime
+import http.client
 
 JWT_SECRET_KEY = env.get('JWT_SECRET_KEY')
 if not JWT_SECRET_KEY:
     JWT_SECRET_KEY = "aquickfoxjumpedovertheriver"
-
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
@@ -78,13 +83,33 @@ def get_token_auth_header():
     return token
 
 
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if constants.PROFILE_KEY not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+
+    return decorated
+
+
 def create_app(app_config=None):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True)
-
+    app = Flask(__name__, static_url_path='/static', static_folder='./static', instance_relative_config=True)
+    
     FLASK_SECRET_KEY = env.get('FLASK_SECRET_KEY')
     if not FLASK_SECRET_KEY:
         FLASK_SECRET_KEY = "secretdev"
+
+    AUTH0_CALLBACK_URL = env.get(constants.AUTH0_CALLBACK_URL)
+    AUTH0_CLIENT_ID = env.get(constants.AUTH0_CLIENT_ID)
+    AUTH0_CLIENT_SECRET = env.get(constants.AUTH0_CLIENT_SECRET)
+    AUTH0_DOMAIN = env.get(constants.AUTH0_DOMAIN)
+    AUTH0_BASE_URL = 'https://' + AUTH0_DOMAIN
+    AUTH0_AUDIENCE = env.get(constants.AUTH0_AUDIENCE)
+    if AUTH0_AUDIENCE is '':
+        AUTH0_AUDIENCE = AUTH0_BASE_URL + '/userinfo'
+
 
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
@@ -98,6 +123,19 @@ def create_app(app_config=None):
         # load the test config if passed in
         app.config.update(app_config)
 
+    oauth = OAuth(app)
+    auth0 = oauth.register(
+        'auth0',
+        client_id=AUTH0_CLIENT_ID,
+        client_secret=AUTH0_CLIENT_SECRET,
+        api_base_url=AUTH0_BASE_URL,
+        access_token_url=AUTH0_BASE_URL + '/oauth/token',
+        authorize_url=AUTH0_BASE_URL + '/authorize',
+        client_kwargs={
+            'scope': 'openid profile',
+        },
+    )
+
     @app.route("/")
     def index():
         message = {
@@ -107,6 +145,7 @@ def create_app(app_config=None):
         }
         return jsonify(message)
 
+
     @app.route('/status')
     def status():
         message = {
@@ -115,6 +154,47 @@ def create_app(app_config=None):
             'message': 'OK'
         }
         return jsonify(message)
+
+
+    @app.route('/callback')
+    def callback_handling():
+        auth0.authorize_access_token()
+        resp = auth0.get('userinfo')
+        userinfo = resp.json()
+
+        session[constants.JWT_PAYLOAD] = userinfo
+        session[constants.PROFILE_KEY] = {
+            'user_id': userinfo['sub'],
+            'name': userinfo['name'],
+            'picture': userinfo['picture']
+        }
+        return redirect('/dashboard')
+        
+    @app.route('/favicon.ico')
+    def favicon():
+        print("favicon")
+        return send_from_directory(path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+    @app.route('/login')
+    def login():
+        return auth0.authorize_redirect(redirect_uri=AUTH0_CALLBACK_URL, audience=AUTH0_AUDIENCE)
+
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        params = {'returnTo': url_for('home', _external=True), 'client_id': AUTH0_CLIENT_ID}
+        return redirect(auth0.api_base_url + '/v2/logout?' + urlencode(params))
+
+    @app.route('/home')
+    def home():
+        return render_template('home.html')
+
+    @app.route('/dashboard')
+    @requires_auth
+    def dashboard():
+        return render_template('dashboard.html',
+                            userinfo=session[constants.PROFILE_KEY],
+                            userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4))
 
     @app.errorhandler(404)
     def page_not_found(e):
