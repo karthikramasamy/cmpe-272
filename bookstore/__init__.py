@@ -178,14 +178,21 @@ def create_app(app_config=None):
     @app.route('/')
     @app.route('/home')
     def home():
-        return render_template('home.html')
-
+        if session and session[constants.PROFILE_KEY]:
+            user_info_json = session[constants.JWT_PAYLOAD]
+            user_id_string = user_info_json.get('sub', '0|0')
+            user_id = user_id_string.split('|')[1]
+            return render_template('home.html', userinfo=session[constants.PROFILE_KEY], userid=user_id)
+        else:
+            return render_template('home.html')
+            
     @app.route('/order')
     @requires_auth
     def render_order_page():
-        return render_template('order.html',
-                            userinfo=session[constants.PROFILE_KEY],
-                            userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4))
+        user_info_json = session[constants.JWT_PAYLOAD]
+        user_id_string = user_info_json.get('sub', '0|0')
+        user_id = user_id_string.split('|')[1]
+        return render_template('order.html', userinfo=session[constants.PROFILE_KEY], userid=user_id)
 
     @app.errorhandler(404)
     def page_not_found(e):

@@ -88,6 +88,7 @@
 
         <div id="orderDiv">
           <h4>Select the number of books you want to order and submit to place a order.</h4>
+
           <br />
           <div id="dataTableDiv"></div>
           <br />
@@ -173,7 +174,7 @@
                   headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi,'');
               }
               // go through cells
-              data[ 'customer_id' ] = '0123456789ab012345678903';
+              data[ 'customer_id' ] = "{{userid}}";
               var items = [];
               for (var i=1; i<table.rows.length; i++) {
                   var tableRow = table.rows[i];
