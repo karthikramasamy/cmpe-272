@@ -3,6 +3,7 @@ from os import environ as env
 from bson.objectid import ObjectId
 from bookstore import fulfillment_token
 from bookstore import token_required
+from bookstore import requires_auth
 from bookstore import bookstore_data
 from bookstore import jsonify_error
 from bookstore.bookstore_db import get_db
@@ -44,6 +45,7 @@ def get_book(isbn):
 
 @bp.route("orders", methods=['GET'])
 @crossdomain(origin='*')
+@requires_auth
 def get_all_orders():
     """
        API to get all the orders.
@@ -58,6 +60,7 @@ def get_all_orders():
 
 @bp.route("orders", methods=['POST', 'OPTIONS'])
 @crossdomain(origin='*')
+@requires_auth
 def place_order():
     """
        API to create new order.
@@ -81,6 +84,7 @@ def place_order():
 
 @bp.route("orders/<order_id>", methods=['GET'])
 @crossdomain(origin='*')
+@requires_auth
 def get_order(order_id):
     """
        API to get the order details.
