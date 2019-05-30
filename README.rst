@@ -30,23 +30,27 @@ Install
 
 Download the source code::
 
-    # clone the repository
-    $ git clone https://github.com/karthikramasamy/cmpe-272
-    $ cd cmpe-272
+# clone the repository
+git clone https://github.com/karthikramasamy/cmpe-272
+cd cmpe-272
 
 Install bookstore::
 
-    $ pip install -e .
+pip install -e .
 
 Run
 ---
 
-::
+Run the application::
 
-    $ export FLASK_APP=bookstore
-    $ export FLASK_ENV=development
-    $ flask init-db
-    $ flask run
+export MONGO_URL=mongodb://localhost:27017
+
+export FLASK_APP=bookstore
+export FLASK_ENV=development
+export JWT_SECRET_KEY=aquickfoxjumpedovertheriver
+
+flask init-db
+flask run
 
 Open http://127.0.0.1:5000 in a browser.
 
@@ -54,13 +58,13 @@ Open http://127.0.0.1:5000 in a browser.
 Test
 ----
 
-::
+Test the application::
 
-    $ pip install '.[test]'
-    $ pytest
+pip install '.[test]'
+pytest
 
 Run with coverage report::
 
-    $ coverage run -m pytest
-    $ coverage report
-    $ coverage html  # open htmlcov/index.html in a browser
+coverage run -m pytest
+coverage report
+coverage html  # open htmlcov/index.html in a browser

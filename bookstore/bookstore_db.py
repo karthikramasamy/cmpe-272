@@ -1,12 +1,12 @@
 from pymongo import MongoClient
+from os import environ as env
 import click
 import datetime
 from flask import current_app, g
 from flask.cli import with_appcontext
-import os
 
-MONGO_URL = os.environ.get('MONGO_URL')
-if not MONGO_URL:
+MONGO_URL = env.get('MONGO_URL')
+if not MONGO_URL or MONGO_URL is '':
     MONGO_URL = "mongodb://localhost:27017"
 
 def get_db():

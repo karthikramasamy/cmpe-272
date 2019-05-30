@@ -1,5 +1,73 @@
-import os
-from flask import Flask, jsonify
+from os import environ as env
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
+from functools import wraps
+
+from bookstore.version import API_VERSION
+import jwt
+import datetime
+
+JWT_SECRET_KEY = env.get('JWT_SECRET_KEY')
+if not JWT_SECRET_KEY:
+    JWT_SECRET_KEY = "aquickfoxjumpedovertheriver"
+
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+def basic_auth(auth):
+    if auth and auth.password == 'secret':
+        return auth.username
+    else:
+        raise AuthError("Unauthorized", 401)
+
+
+def jsonify_error(message, staus_code):
+    error = {
+        'apiVersion': API_VERSION,
+        'status_code': staus_code,
+        'message': message
+    }
+    return (jsonify(error), staus_code)
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        try:
+            token = get_token_auth_header()
+
+            jwt.decode(token, JWT_SECRET_KEY)
+        except AuthError as ex:
+            return jsonify_error(ex.error, ex.status_code)
+        except Exception as ex:
+            print(ex)
+            return jsonify_error("Unauthorized", 403)
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def get_token_auth_header():
+    """Obtains the access token from the Authorization Header"""
+
+    auth = request.headers.get("Authorization", None)
+    if not auth:
+        raise AuthError("Authorization header not found", 401)
+
+    parts = auth.split()
+
+    if parts[0].lower() != "bearer":
+        raise AuthError("Authorization header must start with Bearer", 401)
+    elif len(parts) == 1:
+        raise AuthError("Token not found", 401)
+    elif len(parts) > 2:
+        raise AuthError("Authorization header must be Bearer token", 401)
+
+    token = parts[1]
+    return token
 
 
 def create_app(test_config=None):
@@ -20,20 +88,50 @@ def create_app(test_config=None):
     @app.route("/")
     def index():
         message = {
-            'apiVersion': 'v1.0.0',
-            'status': 200,
+            'apiVersion': API_VERSION,
+            'status_code': 200,
             'message': 'Welcome to the BookStore API'
         }
         return jsonify(message)
 
+    @app.route('/token')
+    def login():
+        try:
+            user_name = basic_auth(request.authorization)
+        except AuthError as ex:
+            print(ex)
+            return jsonify_error("Authentication Failure.", 401)
+
+        token = jwt.encode({'user': user_name, 'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=300)}, JWT_SECRET_KEY)
+        return jsonify({'token': token.decode()})
+
     @app.route('/status')
     def status():
         message = {
-            'apiVersion': 'v1.0.0',
-            'status': 200,
+            'apiVersion': API_VERSION,
+            'status_code': 200,
             'message': 'OK'
         }
         return jsonify(message)
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        """Send message to the user with notFound 404 status."""
+        return jsonify_error("Page Not Found. Refer to the API documentation.", 404)
+
+    @app.errorhandler(Exception)
+    def error_handler(ex):
+        print(ex)
+        status_code = (ex.code if isinstance(ex, HTTPException) else 500)
+        message = {
+            'apiVersion': API_VERSION,
+            'status_code': status_code,
+            'message': str(ex)
+        }
+        response = jsonify(message)
+        response.status_code = status_code
+        return response
+
 
     # register the database commands
     from bookstore import bookstore_db
