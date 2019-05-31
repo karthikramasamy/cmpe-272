@@ -23,6 +23,7 @@ setup(
         'authlib',  
         'six',
         'python-dotenv',
+        'dnspython',
     ],
     extras_require={
         'test': [
