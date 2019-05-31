@@ -21,27 +21,7 @@
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-
-  <style>
-      * {
-          box-sizing: border-box;
-      }
-
-      th, td, p, input {
-          font:14px Verdana;
-      }
-      table, th, td
-      {
-          border: 1px solid black;
-          border: solid 1px #DDD;
-          border-collapse: collapse;
-          padding: 2px 3px;
-          text-align: center;
-      }
-      th {
-          font-weight:bold;
-      }
-  </style>
+  
 </head>
 
 <body>
@@ -125,6 +105,7 @@
               }
               col.push('quantity');
               table = document.createElement("table");
+              table.className="table table-striped table-hover";
       
               var tr = table.insertRow(-1);                   
       

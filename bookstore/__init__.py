@@ -5,6 +5,7 @@ from werkzeug.exceptions import HTTPException
 from functools import wraps
 from authlib.flask.client import OAuth
 from six.moves.urllib.parse import urlencode
+from dotenv import load_dotenv
 
 from bookstore.version import API_VERSION
 from bookstore import constants
@@ -13,6 +14,9 @@ import json
 import jwt
 import datetime
 import http.client
+
+dotenv_path = path.join(path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 JWT_SECRET_KEY = env.get('JWT_SECRET_KEY')
 if not JWT_SECRET_KEY:
