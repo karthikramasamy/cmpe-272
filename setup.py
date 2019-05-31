@@ -22,6 +22,7 @@ setup(
         'pyjwt',
         'authlib',  
         'six',
+        'python-dotenv',
     ],
     extras_require={
         'test': [

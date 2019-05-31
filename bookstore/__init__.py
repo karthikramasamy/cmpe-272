@@ -13,7 +13,6 @@ from bookstore import constants
 import json
 import jwt
 import datetime
-import http.client
 
 dotenv_path = path.join(path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
