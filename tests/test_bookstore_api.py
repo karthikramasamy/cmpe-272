@@ -1,6 +1,7 @@
 import pytest
 import json
 from bookstore.bookstore_db import get_db
+from requests.auth import _basic_auth_str
 
 
 def test_unknown_url(client, auth, app):
@@ -99,13 +100,28 @@ def test_fulfill_order(client):
 
     response = client.put('/api/v1/orders/' + order_id)
 
+    assert response.status_code == 401
+    assert response.is_json
+
+    basic_auth_header = {'Authorization': _basic_auth_str('user', 'secret')}
+
+    response = client.get('/api/v1/token', headers=basic_auth_header)
+
+    assert response.status_code == 200
+    assert response.is_json
+    token = response.get_json()['token']
+
+    bearer_token_header = {'Authorization': "Bearer " + token}
+
+    response = client.put('/api/v1/orders/' + order_id, headers=bearer_token_header)
+
     assert response.status_code == 200
     assert response.is_json
 
     data = response.get_json()
     assert data['status'] == 'Fulfilled'
 
-    response = client.put('/api/v1/orders/' + order_id)
+    response = client.put('/api/v1/orders/' + order_id, headers=bearer_token_header)
 
     assert response.status_code == 404
     assert response.is_json

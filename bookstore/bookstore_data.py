@@ -92,6 +92,9 @@ def place_order(db, customer_id, items):
 def fulfill_order(db, order_id):
     current_order = db.orders.find_one({'_id': ObjectId(order_id)})
 
+    if not current_order:
+        raise ValueError("Invalid Order ID. Can't find any orders for the given id.")
+
     if current_order['status'] == 'Fulfilled':
         raise ValueError("This order is already fulfilled.")
 
@@ -122,9 +125,7 @@ if __name__ == "__main__":
     from bookstore import create_app
     from bookstore import bookstore_db
 
-    app = create_app({
-        'TESTING': True,
-    })
+    app = create_app()
 
     with app.app_context():
         db = bookstore_db.init_db()

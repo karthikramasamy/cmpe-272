@@ -19,6 +19,11 @@ setup(
     install_requires=[
         'flask',
         'pymongo',
+        'pyjwt',
+        'authlib',  
+        'six',
+        'python-dotenv',
+        'dnspython',
     ],
     extras_require={
         'test': [

@@ -1,12 +1,12 @@
 from pymongo import MongoClient
+from os import environ as env
 import click
 import datetime
 from flask import current_app, g
 from flask.cli import with_appcontext
-import os
 
-MONGO_URL = os.environ.get('MONGO_URL')
-if not MONGO_URL:
+MONGO_URL = env.get('MONGO_URL')
+if not MONGO_URL or MONGO_URL is '':
     MONGO_URL = "mongodb://localhost:27017"
 
 def get_db():
@@ -36,10 +36,13 @@ def init_db():
     db = get_db()
 
     # Cleanup database
-    db["books"].delete_many({})
-    db["inventory"].delete_many({})
-    db["customers"].delete_many({})
-    db["orders"].delete_many({})
+    clean_up = False
+
+    if clean_up:
+        db["books"].delete_many({})
+        db["inventory"].delete_many({})
+        db["customers"].delete_many({})
+        db["orders"].delete_many({})
 
     # Insert sample data for books
     db.books.insert_many(
@@ -49,6 +52,7 @@ def init_db():
             "author": ["Michelle Obama"],
             "language": "English",
             "isbn": "1524763136",
+            "price": 10.5,
             "published_date": "2018-11-13",
             "publisher": "Crown Publishing Group"
         }, {
@@ -57,6 +61,7 @@ def init_db():
             "author": ["David Baldacci"],
             "language": "English",
             "isbn": "1538761459",
+            "price": 15.5,
             "published_date": "2019-10-08",
             "publisher": "Grand Central Publishing"
         }, {
@@ -65,6 +70,7 @@ def init_db():
             "author": ["Anna Burns"],
             "language": "English",
             "isbn": "1644450003",
+            "price": 25.5,
             "published_date": "2018-12-04",
             "publisher": "Graywolf Press"
         }]
