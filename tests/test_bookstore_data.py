@@ -16,6 +16,7 @@ class BookStoreUnitTests(unittest.TestCase):
                 "author": ["Michelle Obama"],
                 "language": "English",
                 "isbn": "1524763136",
+                "price": 25,
                 "published_date": "2018-11-13",
                 "publisher": "Crown Publishing Group"
             }, {
@@ -24,6 +25,7 @@ class BookStoreUnitTests(unittest.TestCase):
                 "author": ["David Baldacci"],
                 "language": "English",
                 "isbn": "1538761459",
+                "price": 20,
                 "published_date": "2019-10-08",
                 "publisher": "Grand Central Publishing"
             }, {
@@ -32,6 +34,7 @@ class BookStoreUnitTests(unittest.TestCase):
                 "author": ["Anna Burns"],
                 "language": "English",
                 "isbn": "1644450003",
+                "price": 15,
                 "published_date": "2018-12-04",
                 "publisher": "Graywolf Press"
             }]
